@@ -1014,12 +1014,19 @@ Each sentence or scene will be analyzed for the perfect B-roll search prompt."><
     <div class="search-toolbar">
       <div class="search-input-wrap" style="flex:1">
         <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input class="input-field" id="search-input" placeholder="Search for footage... (e.g. 'city timelapse golden hour')" style="padding-left:38px">
+        <input class="input-field" id="search-input" placeholder="Search footage & photos... (e.g. 'city timelapse golden hour')" style="padding-left:38px">
       </div>
       <div class="source-toggle">
-        <button class="source-btn pexels active" data-source="pexels">Pexels</button>
-        <button class="source-btn pixabay active" data-source="pixabay">Pixabay</button>
+        <button class="source-btn pexels active" data-source="pexels">🎬 Pexels</button>
+        <button class="source-btn pixabay active" data-source="pixabay">🎬 Pixabay</button>
+        <button class="source-btn unsplash active" data-source="unsplash">📷 Unsplash</button>
       </div>
+      <select class="input-field" id="result-count" style="width:90px;cursor:pointer;">
+        <option value="30">30</option>
+        <option value="60">60</option>
+        <option value="100">100</option>
+        <option value="150" selected>150</option>
+      </select>
       <button class="btn-primary" id="do-search">
         <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         SEARCH
@@ -1028,8 +1035,8 @@ Each sentence or scene will be analyzed for the perfect B-roll search prompt."><
     <div id="search-results">
       <div class="empty" style="grid-column:1/-1">
         <div class="empty-icon">🔍</div>
-        <div class="empty-title">Search Stock Footage</div>
-        <div class="empty-body">Search Pexels and Pixabay simultaneously. Prompts from the Script Analyzer will appear here automatically.</div>
+        <div class="empty-title">Search Stock Footage & Photos</div>
+        <div class="empty-body">Search Pexels, Pixabay & Unsplash simultaneously. Up to 150 results at once.</div>
       </div>
     </div>
   </div>
@@ -1220,9 +1227,18 @@ Each sentence or scene will be analyzed for the perfect B-roll search prompt."><
             <button class="toggle-vis" data-target="settings-pixabay">👁</button>
           </div>
         </div>
+        <div class="settings-field">
+          <div class="settings-label">
+            Unsplash API Key
+            <a class="get-key-link" data-url="https://unsplash.com/developers">unsplash.com/developers →</a>
+          </div>
+          <div class="key-input-wrap">
+            <input class="input-field" id="settings-unsplash" type="password" placeholder="Your Unsplash Access Key">
+            <button class="toggle-vis" data-target="settings-unsplash">👁</button>
+          </div>
+          <div class="settings-hint">Free at unsplash.com/developers — photos only</div>
+        </div>
       </div>
-    </div>
-    <div class="settings-footer">
       <button class="btn-ghost" id="cancel-settings">Cancel</button>
       <button class="btn-primary" id="save-settings-btn">SAVE SETTINGS</button>
     </div>
@@ -1239,7 +1255,7 @@ Each sentence or scene will be analyzed for the perfect B-roll search prompt."><
 let settings = { groq:'', pexels:'', pixabay:'' };
 let collection = [];
 let shotPrompts = [];
-let activeSources = new Set(['pexels','pixabay']);
+let activeSources = new Set(['pexels','pixabay','unsplash']);
 
 // ═══════════════════════════════════════════
 //  INIT
@@ -1318,9 +1334,10 @@ document.getElementById('settings-overlay').addEventListener('click', e => {
 });
 
 function openSettings() {
-  document.getElementById('settings-groq').value    = settings.groq    || '';
-  document.getElementById('settings-pexels').value  = settings.pexels  || '';
-  document.getElementById('settings-pixabay').value = settings.pixabay || '';
+  document.getElementById('settings-groq').value     = settings.groq    || '';
+  document.getElementById('settings-pexels').value   = settings.pexels  || '';
+  document.getElementById('settings-pixabay').value  = settings.pixabay || '';
+  document.getElementById('settings-unsplash').value = settings.unsplash || '';
   document.getElementById('settings-overlay').classList.add('open');
 }
 
@@ -1329,9 +1346,10 @@ function closeSettings() {
 }
 
 document.getElementById('save-settings-btn').addEventListener('click', async () => {
-  settings.groq    = document.getElementById('settings-groq').value.trim();
-  settings.pexels  = document.getElementById('settings-pexels').value.trim();
-  settings.pixabay = document.getElementById('settings-pixabay').value.trim();
+  settings.groq     = document.getElementById('settings-groq').value.trim();
+  settings.pexels   = document.getElementById('settings-pexels').value.trim();
+  settings.pixabay  = document.getElementById('settings-pixabay').value.trim();
+  settings.unsplash = document.getElementById('settings-unsplash').value.trim();
   if (window.api) await window.api.saveSettings(settings);
   closeSettings();
   toast('Settings saved', 'success');
@@ -1560,12 +1578,18 @@ function doSearch() {
 }
 
 async function runSearch(query) {
-  if (!settings.pexels && !settings.pixabay) {
+  if (!settings.pexels && !settings.pixabay && !settings.unsplash) {
     toast('Add API keys in Settings', 'error'); openSettings(); return;
   }
 
   const resultsEl = document.getElementById('search-results');
-  resultsEl.innerHTML = `<div class="empty" style="grid-column:1/-1"><div class="empty-icon" style="animation:spin 1s linear infinite;display:inline-block">🔍</div><div class="empty-title">Searching...</div></div>`;
+  const targetCount = parseInt(document.getElementById('result-count').value) || 150;
+  const perSource = Math.ceil(targetCount / activeSources.size);
+  // APIs cap at 80 per page, so we may need multiple pages
+  const perPage = Math.min(80, perSource);
+  const pages = Math.ceil(perSource / perPage);
+
+  resultsEl.innerHTML = `<div class="empty" style="grid-column:1/-1"><div class="empty-icon" style="animation:spin 1s linear infinite;display:inline-block">🔍</div><div class="empty-title">Searching ${targetCount} results...</div><div class="empty-body">Fetching from all active sources</div></div>`;
 
   const btn = document.getElementById('do-search');
   btn.disabled = true;
@@ -1573,46 +1597,81 @@ async function runSearch(query) {
   try {
     const promises = [];
 
+    // Pexels — paginated video search
     if (activeSources.has('pexels') && settings.pexels) {
-      promises.push(
-        window.api.pexels({ apiKey: settings.pexels, query })
-          .then(data => ({ source: 'pexels', data }))
-          .catch(() => ({ source: 'pexels', data: null }))
-      );
+      for (let p = 1; p <= pages; p++) {
+        promises.push(
+          window.api.pexels({ apiKey: settings.pexels, query, perPage, page: p })
+            .then(data => ({ source: 'pexels', data }))
+            .catch(() => ({ source: 'pexels', data: null }))
+        );
+      }
     }
 
+    // Pixabay — paginated video search
     if (activeSources.has('pixabay') && settings.pixabay) {
-      promises.push(
-        window.api.pixabay({ apiKey: settings.pixabay, query })
-          .then(data => ({ source: 'pixabay', data }))
-          .catch(() => ({ source: 'pixabay', data: null }))
-      );
+      for (let p = 1; p <= pages; p++) {
+        promises.push(
+          window.api.pixabay({ apiKey: settings.pixabay, query, perPage, page: p })
+            .then(data => ({ source: 'pixabay', data }))
+            .catch(() => ({ source: 'pixabay', data: null }))
+        );
+      }
+    }
+
+    // Unsplash — photo search
+    if (activeSources.has('unsplash') && settings.unsplash) {
+      for (let p = 1; p <= pages; p++) {
+        promises.push(
+          window.api.unsplash({ apiKey: settings.unsplash, query, perPage: Math.min(30, perPage), page: p })
+            .then(data => ({ source: 'unsplash', data }))
+            .catch(() => ({ source: 'unsplash', data: null }))
+        );
+      }
     }
 
     const results = await Promise.all(promises);
+    const seenIds = new Set();
     const allItems = [];
 
     results.forEach(({ source, data }) => {
       if (!data) return;
+
       if (source === 'pexels' && data.videos) {
         data.videos.forEach(v => {
+          const id = `pexels-${v.id}`;
+          if (seenIds.has(id)) return; seenIds.add(id);
           const thumb = v.image;
           const url = v.url;
           const title = v.user?.name ? `by ${v.user.name}` : 'Pexels Video';
-          // Get best quality video file for preview & download
           const videoFiles = v.video_files || [];
           const hdFile = videoFiles.find(f => f.quality === 'hd') || videoFiles.find(f => f.quality === 'sd') || videoFiles[0];
           const videoSrc = hdFile?.link || '';
-          allItems.push({ source: 'pexels', thumb, url, title, id: `pexels-${v.id}`, videoSrc, raw: v });
+          allItems.push({ source: 'pexels', type: 'video', thumb, url, title, id, videoSrc });
         });
       }
+
       if (source === 'pixabay' && data.hits) {
         data.hits.forEach(v => {
+          const id = `pixabay-${v.id}`;
+          if (seenIds.has(id)) return; seenIds.add(id);
           const thumb = v.videos?.small?.thumbnail || v.userImageURL;
           const url = `https://pixabay.com/videos/id-${v.id}/`;
           const title = v.tags || 'Pixabay Video';
-          const videoSrc = v.videos?.small?.url || v.videos?.medium?.url || '';
-          allItems.push({ source: 'pixabay', thumb, url, title, id: `pixabay-${v.id}`, videoSrc, raw: v });
+          const videoSrc = v.videos?.medium?.url || v.videos?.small?.url || '';
+          allItems.push({ source: 'pixabay', type: 'video', thumb, url, title, id, videoSrc });
+        });
+      }
+
+      if (source === 'unsplash' && data.results) {
+        data.results.forEach(p => {
+          const id = `unsplash-${p.id}`;
+          if (seenIds.has(id)) return; seenIds.add(id);
+          const thumb = p.urls?.small || p.urls?.thumb;
+          const fullImg = p.urls?.full || p.urls?.regular;
+          const url = p.links?.html || '#';
+          const title = p.alt_description || p.description || `by ${p.user?.name}` || 'Unsplash Photo';
+          allItems.push({ source: 'unsplash', type: 'photo', thumb, url, title, id, videoSrc: null, fullImg });
         });
       }
     });
@@ -1622,19 +1681,26 @@ async function runSearch(query) {
       return;
     }
 
-    // Interleave sources
+    // Shuffle to interleave sources nicely
+    allItems.sort(() => Math.random() - 0.5);
+
     resultsEl.innerHTML = '';
     allItems.forEach((item, i) => {
       const card = document.createElement('div');
       card.className = 'result-card';
-      card.style.animationDelay = `${i * 30}ms`;
+      card.style.animationDelay = `${Math.min(i * 20, 600)}ms`;
+
+      const isPhoto = item.type === 'photo';
+      const previewIcon = isPhoto ? '🔍' : '▶';
+
       card.innerHTML = `
         <div class="result-thumb-wrap" style="position:relative;aspect-ratio:16/9;background:#111;overflow:hidden;cursor:pointer;">
-          <img class="result-thumb" src="${item.thumb || ''}" alt="${item.title}" loading="lazy" onerror="this.style.display='none'" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:opacity 0.3s;">
+          <img class="result-thumb" src="${item.thumb || ''}" alt="${item.title}" loading="lazy" onerror="this.style.background='#1a1a1a'" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:opacity 0.3s;">
           ${item.videoSrc ? `<video class="result-video" src="${item.videoSrc}" muted loop playsinline preload="none" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity 0.3s;"></video>` : ''}
           <div class="play-overlay" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;">
-            <div style="width:44px;height:44px;border-radius:50%;background:rgba(0,0,0,0.7);border:2px solid rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;font-size:16px;transition:all 0.2s;">▶</div>
+            <div style="width:44px;height:44px;border-radius:50%;background:rgba(0,0,0,0.7);border:2px solid rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;font-size:16px;transition:all 0.2s;">${previewIcon}</div>
           </div>
+          ${isPhoto ? '<div style="position:absolute;top:6px;right:6px;background:rgba(0,0,0,0.6);border-radius:3px;padding:2px 6px;font-size:10px;font-weight:700;color:#ddd;">PHOTO</div>' : ''}
         </div>
         <div class="result-info">
           <div class="result-source src-${item.source}">${item.source.toUpperCase()}</div>
@@ -1665,42 +1731,40 @@ async function runSearch(query) {
         });
       }
 
-      // Click thumb → open fullscreen modal
+      // Click/expand → modal
       thumbWrap.addEventListener('click', () => openVideoModal(item));
-
-      // Expand button
       card.querySelector('.expand-btn').addEventListener('click', () => openVideoModal(item));
 
-      // Download via main process
+      // Download
       card.querySelector('.download-btn').addEventListener('click', async function() {
-        if (!item.videoSrc) { window.api?.openUrl(item.url); return; }
-        this.textContent = '⏳ Downloading...';
+        const src = item.videoSrc || item.fullImg;
+        if (!src) { window.api?.openUrl(item.url); return; }
+        this.textContent = '⏳...';
         this.disabled = true;
         try {
-          const filename = `${item.id}.mp4`;
-          await window.api.downloadVideo(item.videoSrc, filename);
-          toast('Saved to Downloads folder! ✓', 'success');
-          this.textContent = '✓ Downloaded';
+          const ext = isPhoto ? 'jpg' : 'mp4';
+          await window.api.downloadVideo(src, `${item.id}.${ext}`);
+          toast('Saved to Downloads! ✓', 'success');
+          this.textContent = '✓ Done';
         } catch(e) {
-          toast('Download failed — opening page instead', 'error');
+          toast('Download failed — opening page', 'error');
           window.api?.openUrl(item.url);
           this.textContent = '⬇ Download';
           this.disabled = false;
         }
       });
 
-      // Save to collection
+      // Save
       card.querySelector('.save-btn').addEventListener('click', function(e) {
         e.stopPropagation();
-        const itm = {id:item.id, source:item.source, thumb:item.thumb, url:item.url, title:item.title, videoSrc:item.videoSrc};
-        saveToCollection(itm);
+        saveToCollection({id:item.id, source:item.source, type:item.type, thumb:item.thumb, url:item.url, title:item.title, videoSrc:item.videoSrc, fullImg:item.fullImg});
         this.textContent = '✓ Saved';
         this.style.color = 'var(--green)';
         setTimeout(() => { this.textContent = 'Save'; this.style.color = ''; }, 2000);
       });
     });
 
-    toast(`${allItems.length} results found`, 'success');
+    toast(`${allItems.length} results loaded`, 'success');
   } catch (err) {
     toast('Search failed', 'error');
     resultsEl.innerHTML = `<div class="empty" style="grid-column:1/-1"><div class="empty-icon">❌</div><div class="empty-title">Search Failed</div><div class="empty-body">${err.message}</div></div>`;
