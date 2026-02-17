@@ -62,11 +62,51 @@ ipcMain.handle('save-collection', (_, collection) => {
 // Open external URLs
 ipcMain.handle('open-url', (_, url) => shell.openExternal(url));
 
+// Read file contents (for PDF/DOCX drag & drop)
+ipcMain.handle('read-file', async (_, filePath) => {
+  try {
+    const ext = path.extname(filePath).toLowerCase();
+    if (ext === '.txt' || ext === '.md') {
+      return { type: 'text', content: fs.readFileSync(filePath, 'utf8') };
+    }
+    // For PDF and DOCX, return base64 so renderer can process
+    const buffer = fs.readFileSync(filePath);
+    return { type: ext.replace('.',''), content: buffer.toString('base64') };
+  } catch (e) {
+    throw new Error('Could not read file: ' + e.message);
+  }
+});
+
+// Download video file through main process
+ipcMain.handle('download-video', async (_, { url, filename }) => {
+  return new Promise((resolve, reject) => {
+    const downloadsPath = app.getPath('downloads');
+    const filePath = path.join(downloadsPath, filename);
+    const file = fs.createWriteStream(filePath);
+
+    const request = (urlStr) => {
+      const urlObj = new URL(urlStr);
+      const isHttps = urlObj.protocol === 'https:';
+      const lib = isHttps ? require('https') : require('http');
+      lib.get(urlStr, (res) => {
+        if (res.statusCode === 301 || res.statusCode === 302) {
+          file.close();
+          request(res.headers.location);
+          return;
+        }
+        res.pipe(file);
+        file.on('finish', () => { file.close(); resolve(filePath); });
+      }).on('error', (err) => { fs.unlink(filePath, () => {}); reject(err); });
+    };
+    request(url);
+  });
+});
+
 // Groq API call (proxied through main process to avoid CORS)
 ipcMain.handle('groq-request', async (_, { apiKey, messages, model }) => {
   return new Promise((resolve, reject) => {
     const body = JSON.stringify({
-      model: model || 'llama3-8b-8192',
+      model: model || 'llama-3.3-70b-versatile',
       messages,
       temperature: 0.7,
       max_tokens: 2048
