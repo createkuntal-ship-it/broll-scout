@@ -1347,7 +1347,7 @@ Return ONLY the JSON array.`;
 
     const result = await window.api.groq({
       apiKey: settings.groq,
-      model: 'llama3-8b-8192',
+      model: 'llama-3.3-70b-versatile',
       messages: [{ role: 'user', content: prompt }]
     });
 
@@ -1737,7 +1737,7 @@ Focus on the most important gaps first.`;
 
     const result = await window.api.groq({
       apiKey: settings.groq,
-      model: 'llama3-8b-8192',
+      model: 'llama-3.3-70b-versatile',
       messages: [{ role: 'user', content: prompt }]
     });
 
