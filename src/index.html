@@ -1501,7 +1501,11 @@ async function runSearch(query) {
           const thumb = v.image;
           const url = v.url;
           const title = v.user?.name ? `by ${v.user.name}` : 'Pexels Video';
-          allItems.push({ source: 'pexels', thumb, url, title, id: `pexels-${v.id}`, raw: v });
+          // Get best quality video file for preview & download
+          const videoFiles = v.video_files || [];
+          const hdFile = videoFiles.find(f => f.quality === 'hd') || videoFiles.find(f => f.quality === 'sd') || videoFiles[0];
+          const videoSrc = hdFile?.link || '';
+          allItems.push({ source: 'pexels', thumb, url, title, id: `pexels-${v.id}`, videoSrc, raw: v });
         });
       }
       if (source === 'pixabay' && data.hits) {
@@ -1509,7 +1513,8 @@ async function runSearch(query) {
           const thumb = v.videos?.small?.thumbnail || v.userImageURL;
           const url = `https://pixabay.com/videos/id-${v.id}/`;
           const title = v.tags || 'Pixabay Video';
-          allItems.push({ source: 'pixabay', thumb, url, title, id: `pixabay-${v.id}`, raw: v });
+          const videoSrc = v.videos?.small?.url || v.videos?.medium?.url || '';
+          allItems.push({ source: 'pixabay', thumb, url, title, id: `pixabay-${v.id}`, videoSrc, raw: v });
         });
       }
     });
@@ -1526,21 +1531,65 @@ async function runSearch(query) {
       card.className = 'result-card';
       card.style.animationDelay = `${i * 30}ms`;
       card.innerHTML = `
-        <img class="result-thumb" src="${item.thumb || ''}" alt="${item.title}" loading="lazy" onerror="this.style.background='#1a1a1a'">
+        <div class="result-thumb-wrap" style="position:relative;aspect-ratio:16/9;background:#111;overflow:hidden;">
+          <img class="result-thumb" src="${item.thumb || ''}" alt="${item.title}" loading="lazy" onerror="this.style.display='none'" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:opacity 0.3s;">
+          ${item.videoSrc ? `<video class="result-video" src="${item.videoSrc}" muted loop playsinline preload="none" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity 0.3s;"></video>` : ''}
+          <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;opacity:0.6;pointer-events:none;">
+            <div style="width:36px;height:36px;border-radius:50%;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;font-size:14px;">▶</div>
+          </div>
+        </div>
         <div class="result-info">
           <div class="result-source src-${item.source}">${item.source.toUpperCase()}</div>
           <div class="result-title">${item.title}</div>
           <div class="result-actions">
-            <button class="result-btn" data-url="${item.url}">View</button>
-            <button class="result-btn save-btn" data-item='${JSON.stringify({id:item.id,source:item.source,thumb:item.thumb,url:item.url,title:item.title})}'>Save</button>
+            <button class="result-btn view-btn" data-url="${item.url}">Open Page</button>
+            ${item.videoSrc ? `<button class="result-btn download-btn" data-src="${item.videoSrc}" data-name="${item.id}.mp4">Download</button>` : ''}
+            <button class="result-btn save-btn" data-item='${JSON.stringify({id:item.id,source:item.source,thumb:item.thumb,url:item.url,title:item.title,videoSrc:item.videoSrc})}'>Save</button>
           </div>
         </div>`;
       resultsEl.appendChild(card);
 
-      card.querySelector('[data-url]').addEventListener('click', function() {
+      // Video hover preview
+      const thumbWrap = card.querySelector('.result-thumb-wrap');
+      const video = card.querySelector('.result-video');
+      const img = card.querySelector('.result-thumb');
+      if (video) {
+        thumbWrap.addEventListener('mouseenter', () => {
+          video.play().catch(() => {});
+          video.style.opacity = '1';
+          if (img) img.style.opacity = '0';
+        });
+        thumbWrap.addEventListener('mouseleave', () => {
+          video.pause();
+          video.currentTime = 0;
+          video.style.opacity = '0';
+          if (img) img.style.opacity = '1';
+        });
+      }
+
+      // Open page
+      card.querySelector('.view-btn').addEventListener('click', function() {
         window.api?.openUrl(this.dataset.url);
       });
 
+      // Download
+      const dlBtn = card.querySelector('.download-btn');
+      if (dlBtn) {
+        dlBtn.addEventListener('click', function() {
+          const src = this.dataset.src;
+          const name = this.dataset.name;
+          const a = document.createElement('a');
+          a.href = src;
+          a.download = name;
+          a.target = '_blank';
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          toast('Download started!', 'success');
+        });
+      }
+
+      // Save to collection
       card.querySelector('.save-btn').addEventListener('click', function(e) {
         e.stopPropagation();
         const item = JSON.parse(this.dataset.item);
