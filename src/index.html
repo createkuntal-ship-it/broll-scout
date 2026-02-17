@@ -1,0 +1,1835 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' https://fonts.googleapis.com https://fonts.gstatic.com https://images.pexels.com https://vz-848b18dd-d49.b-cdn.net; img-src 'self' data: https: blob:; media-src https: blob:;">
+<title>B-Roll Scout</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:       #080808;
+  --bg2:      #0e0e0e;
+  --bg3:      #141414;
+  --bg4:      #1a1a1a;
+  --border:   #222222;
+  --border2:  #2e2e2e;
+  --yellow:   #e8ff47;
+  --yellow2:  #b8cc2a;
+  --red:      #ff4040;
+  --blue:     #4080ff;
+  --green:    #40ff90;
+  --text:     #f2f2f2;
+  --text2:    #888888;
+  --text3:    #444444;
+  --radius:   6px;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+html, body {
+  height: 100%;
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  overflow: hidden;
+  font-size: 14px;
+}
+
+/* ─── SCROLLBARS ─── */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #2a2a2a; border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: #3a3a3a; }
+
+/* ─── LAYOUT ─── */
+#app { display:flex; flex-direction:column; height:100vh; }
+
+/* ─── TITLEBAR ─── */
+#titlebar {
+  height: 48px;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  -webkit-app-region: drag;
+  flex-shrink: 0;
+  gap: 0;
+}
+
+.mac-space { width: 76px; flex-shrink: 0; }
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  -webkit-app-region: no-drag;
+}
+
+.logo-mark {
+  width: 26px; height: 26px;
+  background: var(--yellow);
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 900; color: #000;
+  flex-shrink: 0;
+}
+
+.logo-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 20px;
+  letter-spacing: 3px;
+  color: var(--text);
+}
+.logo-name em { color: var(--yellow); font-style: normal; }
+
+/* ─── NAV TABS ─── */
+#nav {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: 32px;
+  -webkit-app-region: no-drag;
+}
+
+.nav-tab {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 14px;
+  border-radius: var(--radius);
+  border: none;
+  background: transparent;
+  color: var(--text2);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.nav-tab svg { flex-shrink:0; }
+.nav-tab:hover { background: var(--bg3); color: var(--text); }
+.nav-tab.active { background: var(--bg4); color: var(--yellow); }
+.nav-tab .badge {
+  background: var(--yellow);
+  color: #000;
+  font-size: 9px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 10px;
+  letter-spacing: 0.5px;
+}
+
+.titlebar-right {
+  margin-left: auto;
+  display: flex;
+  gap: 8px;
+  -webkit-app-region: no-drag;
+}
+
+.icon-btn {
+  width: 30px; height: 30px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text2);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s;
+}
+.icon-btn:hover { background: var(--bg3); color: var(--text); border-color: var(--border2); }
+
+/* ─── PANELS ─── */
+.panel { display:none; flex:1; overflow:hidden; }
+.panel.active { display:flex; flex-direction:column; }
+
+/* ─── SHARED COMPONENTS ─── */
+.section-head {
+  padding: 18px 24px 14px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+.section-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 16px;
+  letter-spacing: 2px;
+  color: var(--text);
+}
+.section-sub { font-size: 11px; color: var(--text3); margin-top: 2px; }
+
+.btn-primary {
+  display: flex; align-items: center; gap: 7px;
+  padding: 9px 18px;
+  background: var(--yellow);
+  color: #000;
+  border: none;
+  border-radius: var(--radius);
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 15px;
+  letter-spacing: 1.5px;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.btn-primary:hover { background: #f2ff70; }
+.btn-primary:disabled { background: var(--bg4); color: var(--text3); cursor: not-allowed; }
+
+.btn-ghost {
+  display: flex; align-items: center; gap: 6px;
+  padding: 7px 14px;
+  background: transparent;
+  color: var(--text2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.btn-ghost:hover { background: var(--bg3); color: var(--text); border-color: var(--border2); }
+
+.input-field {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  padding: 9px 13px;
+  outline: none;
+  transition: border-color 0.15s;
+  width: 100%;
+}
+.input-field:focus { border-color: var(--yellow); }
+.input-field::placeholder { color: var(--text3); }
+
+.textarea-field {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-family: 'Space Mono', monospace;
+  font-size: 12px;
+  line-height: 1.8;
+  padding: 14px;
+  outline: none;
+  resize: none;
+  transition: border-color 0.15s;
+  width: 100%;
+  user-select: text;
+}
+.textarea-field:focus { border-color: var(--yellow); }
+.textarea-field::placeholder { color: var(--text3); }
+
+/* ─── EMPTY STATE ─── */
+.empty {
+  flex:1; display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  gap: 14px; color: var(--text3); text-align:center; padding:40px;
+}
+.empty-icon { font-size: 52px; opacity: 0.3; }
+.empty-title { font-family:'Bebas Neue',sans-serif; font-size:24px; letter-spacing:2px; color:var(--text2); }
+.empty-body { font-size: 13px; line-height: 1.7; max-width: 300px; }
+
+/* ─── SPINNER ─── */
+.spinner {
+  width: 18px; height: 18px;
+  border: 2px solid #0003;
+  border-top-color: #000;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+.spinner.light { border-color: #fff2; border-top-color: var(--yellow); }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ══════════════════════════════════════════════
+   PANEL 1: SCRIPT ANALYZER
+══════════════════════════════════════════════ */
+#panel-script {
+  display: grid;
+  grid-template-columns: 440px 1fr;
+}
+
+.script-left {
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+
+.script-input-area {
+  flex:1; display:flex; flex-direction:column;
+  padding: 20px; gap: 12px; overflow:hidden;
+}
+
+#script-input { flex:1; min-height: 0; }
+
+.script-meta {
+  display: flex; align-items: center;
+  justify-content: space-between;
+  padding: 0 2px;
+}
+.char-count { font-size: 11px; color: var(--text3); font-family:'Space Mono',monospace; }
+
+.script-right {
+  display: flex; flex-direction:column; overflow:hidden;
+}
+
+#shot-list {
+  flex:1; overflow-y:auto;
+  padding: 16px;
+  display:flex; flex-direction:column; gap:10px;
+}
+
+.shot-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+  transition: border-color 0.15s;
+  animation: fadeUp 0.25s ease both;
+}
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(6px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+.shot-card:hover { border-color: var(--border2); }
+
+.shot-number {
+  font-family:'Space Mono',monospace;
+  font-size: 10px;
+  color: var(--yellow);
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+}
+
+.shot-original {
+  font-size: 11px;
+  color: var(--text3);
+  font-style: italic;
+  margin-bottom: 8px;
+  line-height: 1.5;
+  border-left: 2px solid var(--border2);
+  padding-left: 8px;
+}
+
+.shot-prompt-text {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  line-height: 1.5;
+  margin-bottom: 10px;
+  user-select: text;
+}
+
+.shot-chips {
+  display: flex; flex-wrap:wrap; gap:5px; margin-bottom: 10px;
+}
+.chip {
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+.chip-mood  { background: rgba(232,255,71,0.08);  color: var(--yellow); border: 1px solid rgba(232,255,71,0.15); }
+.chip-type  { background: rgba(64,128,255,0.08);  color: var(--blue);   border: 1px solid rgba(64,128,255,0.15); }
+.chip-pace  { background: rgba(255,64,64,0.08);   color: var(--red);    border: 1px solid rgba(255,64,64,0.15); }
+
+.shot-buttons {
+  display: flex; gap: 6px; align-items: center;
+}
+.search-btn {
+  padding: 4px 10px;
+  border-radius: 4px;
+  border: 1px solid var(--border2);
+  background: transparent;
+  color: var(--text2);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.search-btn:hover { background: var(--bg4); }
+.search-btn.pexels:hover  { border-color: #05a081; color: #05a081; }
+.search-btn.pixabay:hover { border-color: #2ec66e; color: #2ec66e; }
+.search-btn.unsplash:hover{ border-color: #f0f0f0; color: #f0f0f0; }
+
+.copy-btn {
+  margin-left: auto;
+  padding: 4px 10px;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text3);
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.copy-btn:hover { color: var(--yellow); border-color: rgba(232,255,71,0.2); }
+.copy-btn.copied { color: var(--green); }
+
+.shots-header {
+  display: flex; align-items:center; justify-content:space-between;
+  padding: 16px 20px 12px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+/* ══════════════════════════════════════════════
+   PANEL 2: STOCK SEARCH
+══════════════════════════════════════════════ */
+#panel-search {
+  flex-direction: column;
+}
+
+.search-toolbar {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex; gap: 10px; align-items: center;
+  flex-shrink: 0;
+}
+
+.search-input-wrap {
+  flex:1; position:relative;
+}
+.search-input-wrap svg {
+  position:absolute; left:12px; top:50%; transform:translateY(-50%);
+  color: var(--text3); pointer-events:none;
+}
+#search-input {
+  padding-left: 38px;
+}
+
+.source-toggle {
+  display: flex; gap: 4px;
+}
+.source-btn {
+  padding: 6px 12px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text2);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  letter-spacing: 0.3px;
+}
+.source-btn.active { background: var(--bg4); border-color: var(--border2); color: var(--text); }
+.source-btn.active.pexels  { color: #05a081; border-color: rgba(5,160,129,0.3); }
+.source-btn.active.pixabay { color: #2ec66e; border-color: rgba(46,198,110,0.3); }
+.source-btn.active.unsplash{ color: #ddd;    border-color: rgba(221,221,221,0.3); }
+
+#search-results {
+  flex:1; overflow-y:auto;
+  padding: 16px 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+  align-content: start;
+}
+
+.result-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.15s;
+  animation: fadeUp 0.2s ease both;
+}
+.result-card:hover { border-color: var(--yellow); transform: translateY(-2px); }
+
+.result-thumb {
+  width: 100%; aspect-ratio: 16/9;
+  object-fit: cover;
+  background: var(--bg3);
+  display: block;
+}
+
+.result-info {
+  padding: 10px;
+}
+.result-source {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.src-pexels  { color: #05a081; }
+.src-pixabay { color: #2ec66e; }
+.src-unsplash{ color: var(--text2); }
+
+.result-title {
+  font-size: 12px;
+  color: var(--text);
+  line-height: 1.4;
+  margin-bottom: 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.result-actions {
+  display: flex; gap: 5px;
+}
+.result-btn {
+  flex:1; padding: 5px;
+  border-radius: 4px;
+  border: 1px solid var(--border2);
+  background: transparent;
+  color: var(--text2);
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: center;
+}
+.result-btn:hover { background: var(--bg3); color: var(--text); }
+.result-btn.save-btn:hover { background: rgba(232,255,71,0.08); color: var(--yellow); border-color: rgba(232,255,71,0.2); }
+
+/* ══════════════════════════════════════════════
+   PANEL 3: ORGANIZER
+══════════════════════════════════════════════ */
+#panel-organizer {
+  flex-direction: column;
+}
+
+.organizer-toolbar {
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex; gap: 10px; align-items: center;
+  flex-shrink: 0;
+}
+
+.filter-group {
+  display: flex; gap: 4px;
+}
+
+.filter-chip {
+  padding: 5px 12px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text2);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.filter-chip.active {
+  background: var(--yellow);
+  color: #000;
+  border-color: var(--yellow);
+}
+
+#collection-grid {
+  flex:1; overflow-y:auto;
+  padding: 16px 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+  align-content: start;
+}
+
+.collection-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  animation: fadeUp 0.2s ease both;
+}
+
+.collection-thumb {
+  width: 100%; aspect-ratio: 16/9;
+  object-fit: cover;
+  background: var(--bg3);
+  display: block;
+}
+
+.collection-body {
+  padding: 10px;
+}
+
+.collection-tags {
+  display: flex; gap: 4px; flex-wrap:wrap; margin-bottom: 8px;
+}
+.ctag {
+  padding: 2px 7px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  background: var(--bg4);
+  color: var(--text2);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: all 0.1s;
+}
+.ctag.selected { background: rgba(232,255,71,0.1); color: var(--yellow); border-color: rgba(232,255,71,0.2); }
+
+.tag-presets {
+  display: flex; gap: 4px; flex-wrap:wrap; margin-bottom: 8px;
+}
+
+.collection-footer {
+  display: flex; gap: 5px; align-items: center;
+}
+.collection-source {
+  font-size: 10px; font-weight: 700;
+  letter-spacing: 1px; text-transform: uppercase;
+  margin-right: auto;
+}
+
+/* ══════════════════════════════════════════════
+   PANEL 4: GAP ANALYZER
+══════════════════════════════════════════════ */
+#panel-gaps {
+  display: grid;
+  grid-template-columns: 400px 1fr;
+}
+
+.gaps-left {
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction:column;
+  overflow: hidden;
+}
+
+.gaps-input-area {
+  flex:1; display:flex; flex-direction:column;
+  padding: 20px; gap: 12px; overflow:hidden;
+}
+
+#gaps-script { flex:1; }
+
+.gaps-right {
+  display: flex; flex-direction:column; overflow:hidden;
+}
+
+#gaps-results {
+  flex:1; overflow-y:auto;
+  padding: 16px;
+  display:flex; flex-direction:column; gap: 12px;
+}
+
+.gap-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+  animation: fadeUp 0.25s ease both;
+}
+
+.gap-status {
+  display: flex; align-items:center; gap: 8px;
+  margin-bottom: 8px;
+}
+.gap-indicator {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.gap-indicator.missing  { background: var(--red); box-shadow: 0 0 6px var(--red); }
+.gap-indicator.covered  { background: var(--green); }
+.gap-indicator.partial  { background: var(--yellow); }
+
+.gap-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.label-missing { color: var(--red); }
+.label-covered { color: var(--green); }
+.label-partial { color: var(--yellow); }
+
+.gap-scene {
+  font-size: 12px;
+  color: var(--text2);
+  font-style: italic;
+  margin-bottom: 8px;
+  border-left: 2px solid var(--border2);
+  padding-left: 8px;
+  line-height: 1.5;
+}
+
+.gap-suggestion {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 10px;
+  line-height: 1.5;
+  user-select: text;
+}
+
+.gap-reason {
+  font-size: 11px;
+  color: var(--text3);
+  line-height: 1.5;
+  margin-bottom: 10px;
+}
+
+.gap-actions { display:flex; gap:6px; }
+
+/* ══════════════════════════════════════════════
+   SETTINGS OVERLAY
+══════════════════════════════════════════════ */
+#settings-overlay {
+  display: none;
+  position: fixed; inset:0;
+  background: rgba(0,0,0,0.85);
+  z-index: 1000;
+  align-items:center; justify-content:center;
+  backdrop-filter: blur(4px);
+}
+#settings-overlay.open { display:flex; }
+
+.settings-modal {
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  width: 540px;
+  max-height: 80vh;
+  overflow-y: auto;
+  animation: modalIn 0.2s ease;
+}
+@keyframes modalIn {
+  from { opacity:0; transform:scale(0.95) translateY(-10px); }
+  to   { opacity:1; transform:scale(1) translateY(0); }
+}
+
+.settings-header {
+  padding: 22px 24px 16px;
+  border-bottom: 1px solid var(--border);
+  display:flex; align-items:center; justify-content:space-between;
+}
+
+.settings-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 20px; letter-spacing: 2px;
+}
+
+.settings-body { padding: 24px; display:flex; flex-direction:column; gap: 24px; }
+
+.settings-group {}
+.settings-group-title {
+  font-size: 11px; font-weight: 700; letter-spacing: 1.5px;
+  text-transform: uppercase; color: var(--text3);
+  margin-bottom: 12px;
+}
+
+.settings-field { display:flex; flex-direction:column; gap: 6px; margin-bottom: 12px; }
+.settings-label { font-size: 13px; font-weight: 500; display:flex; align-items:center; justify-content:space-between; }
+
+.get-key-link {
+  font-size: 11px; color: var(--yellow); cursor:pointer;
+  text-decoration: none; opacity: 0.8;
+  transition: opacity 0.15s;
+}
+.get-key-link:hover { opacity: 1; }
+
+.key-input-wrap { position:relative; }
+.key-input-wrap input {
+  padding-right: 44px;
+}
+.toggle-vis {
+  position:absolute; right:10px; top:50%; transform:translateY(-50%);
+  background:none; border:none; color:var(--text3); cursor:pointer;
+  font-size: 14px; padding: 2px;
+}
+.toggle-vis:hover { color: var(--text); }
+
+.settings-hint { font-size: 11px; color: var(--text3); line-height: 1.5; }
+
+.settings-footer {
+  padding: 16px 24px;
+  border-top: 1px solid var(--border);
+  display:flex; justify-content:flex-end; gap:8px;
+}
+
+/* ── TOAST ── */
+#toast {
+  position:fixed; bottom:24px; left:50%; transform:translateX(-50%);
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  padding: 10px 18px;
+  font-size: 13px; font-weight: 500;
+  opacity: 0; pointer-events:none;
+  transition: opacity 0.2s, transform 0.2s;
+  z-index: 9999;
+  transform: translateX(-50%) translateY(8px);
+  white-space: nowrap;
+}
+#toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+#toast.success { border-color: rgba(64,255,144,0.3); color: var(--green); }
+#toast.error   { border-color: rgba(255,64,64,0.3);  color: var(--red); }
+#toast.info    { border-color: rgba(232,255,71,0.3);  color: var(--yellow); }
+
+/* ── SETUP SCREEN ── */
+#setup-screen {
+  position:fixed; inset:0;
+  background: var(--bg);
+  z-index: 500;
+  display: none;
+  align-items:center; justify-content:center;
+  flex-direction: column;
+}
+#setup-screen.visible { display:flex; }
+
+.setup-card {
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: 12px;
+  padding: 40px;
+  width: 500px;
+  animation: modalIn 0.3s ease;
+}
+
+.setup-logo {
+  display:flex; align-items:center; gap:12px;
+  margin-bottom: 28px;
+}
+.setup-logo-mark {
+  width: 36px; height: 36px;
+  background: var(--yellow);
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  display:flex; align-items:center; justify-content:center;
+  font-size: 16px; font-weight: 900; color: #000;
+}
+.setup-logo-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 28px; letter-spacing: 3px;
+}
+.setup-logo-name em { color: var(--yellow); font-style:normal; }
+
+.setup-welcome {
+  font-size: 14px; color: var(--text2); margin-bottom: 28px; line-height: 1.6;
+}
+
+.setup-step {
+  display:flex; flex-direction:column; gap: 6px;
+  margin-bottom: 16px;
+}
+.setup-step-label {
+  font-size: 13px; font-weight: 600;
+  display:flex; align-items:center; justify-content:space-between;
+}
+
+.step-num {
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  background: var(--yellow);
+  color: #000;
+  font-size: 10px; font-weight: 900;
+  display:inline-flex; align-items:center; justify-content:center;
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+
+.setup-footer { margin-top: 24px; }
+</style>
+</head>
+<body>
+
+<div id="app">
+
+  <!-- TITLEBAR -->
+  <div id="titlebar">
+    <div class="mac-space" id="mac-space" style="display:none"></div>
+    <div class="logo">
+      <div class="logo-mark">▶</div>
+      <div class="logo-name">B-ROLL <em>SCOUT</em></div>
+    </div>
+
+    <nav id="nav">
+      <button class="nav-tab active" data-panel="script">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        Script Analyzer
+      </button>
+      <button class="nav-tab" data-panel="search">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        Stock Search
+      </button>
+      <button class="nav-tab" data-panel="organizer">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        Organizer
+        <span class="badge" id="collection-badge" style="display:none">0</span>
+      </button>
+      <button class="nav-tab" data-panel="gaps">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        Gap Analyzer
+      </button>
+    </nav>
+
+    <div class="titlebar-right">
+      <button class="icon-btn" id="settings-btn" title="Settings">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- PANEL 1: SCRIPT ANALYZER -->
+  <div class="panel active" id="panel-script">
+    <div class="script-left">
+      <div class="section-head">
+        <div>
+          <div class="section-title">Script Input</div>
+          <div class="section-sub">Paste your script or storyboard notes</div>
+        </div>
+      </div>
+      <div class="script-input-area">
+        <textarea class="textarea-field" id="script-input"
+          placeholder="Paste your script here...
+
+Example:
+The city wakes up slowly. A lone figure walks through empty streets at dawn, coat pulled tight against the cold. Steam rises from manholes as the first light catches skyscraper glass...
+
+Each sentence or scene will be analyzed for the perfect B-roll search prompt."></textarea>
+        <div class="script-meta">
+          <span class="char-count" id="char-count">0 lines</span>
+          <button class="btn-ghost" id="clear-script">Clear</button>
+        </div>
+        <button class="btn-primary" id="analyze-btn">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          ANALYZE SCRIPT
+        </button>
+      </div>
+    </div>
+
+    <div class="script-right">
+      <div class="shots-header">
+        <div>
+          <div class="section-title">Shot Prompts</div>
+          <div class="section-sub" id="shots-sub">AI-generated search prompts will appear here</div>
+        </div>
+        <div style="display:flex;gap:6px;">
+          <button class="btn-ghost" id="export-shots" style="display:none">
+            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Export
+          </button>
+        </div>
+      </div>
+      <div id="shot-list">
+        <div class="empty">
+          <div class="empty-icon">🎬</div>
+          <div class="empty-title">Ready to Analyze</div>
+          <div class="empty-body">Paste your script on the left and hit Analyze. The AI will generate optimized stock search prompts for every scene.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PANEL 2: STOCK SEARCH -->
+  <div class="panel" id="panel-search">
+    <div class="search-toolbar">
+      <div class="search-input-wrap" style="flex:1">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input class="input-field" id="search-input" placeholder="Search for footage... (e.g. 'city timelapse golden hour')" style="padding-left:38px">
+      </div>
+      <div class="source-toggle">
+        <button class="source-btn pexels active" data-source="pexels">Pexels</button>
+        <button class="source-btn pixabay active" data-source="pixabay">Pixabay</button>
+      </div>
+      <button class="btn-primary" id="do-search">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        SEARCH
+      </button>
+    </div>
+    <div id="search-results">
+      <div class="empty" style="grid-column:1/-1">
+        <div class="empty-icon">🔍</div>
+        <div class="empty-title">Search Stock Footage</div>
+        <div class="empty-body">Search Pexels and Pixabay simultaneously. Prompts from the Script Analyzer will appear here automatically.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PANEL 3: ORGANIZER -->
+  <div class="panel" id="panel-organizer">
+    <div class="organizer-toolbar">
+      <div class="section-title" style="margin-right:auto">My Collection</div>
+      <div class="filter-group" id="filter-group">
+        <button class="filter-chip active" data-tag="all">All</button>
+        <button class="filter-chip" data-tag="hero">Hero Shot</button>
+        <button class="filter-chip" data-tag="broll">B-Roll</button>
+        <button class="filter-chip" data-tag="cutaway">Cutaway</button>
+        <button class="filter-chip" data-tag="transition">Transition</button>
+        <button class="filter-chip" data-tag="slow-mo">Slow Mo</button>
+      </div>
+      <button class="btn-ghost" id="export-collection">
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Export CSV
+      </button>
+    </div>
+    <div id="collection-grid">
+      <div class="empty" style="grid-column:1/-1">
+        <div class="empty-icon">📂</div>
+        <div class="empty-title">Collection Empty</div>
+        <div class="empty-body">Save footage from the Stock Search tab. Tag and organize everything here.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PANEL 4: GAP ANALYZER -->
+  <div class="panel" id="panel-gaps">
+    <div class="gaps-left">
+      <div class="section-head">
+        <div>
+          <div class="section-title">Gap Analysis</div>
+          <div class="section-sub">What's missing from your collection?</div>
+        </div>
+      </div>
+      <div class="gaps-input-area">
+        <textarea class="textarea-field" id="gaps-script"
+          placeholder="Paste your script here (or it will sync from the Script Analyzer tab)..."></textarea>
+        <button class="btn-primary" id="analyze-gaps-btn">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
+          FIND GAPS
+        </button>
+      </div>
+    </div>
+
+    <div class="gaps-right">
+      <div class="shots-header">
+        <div>
+          <div class="section-title">Missing Shots</div>
+          <div class="section-sub" id="gaps-sub">AI will compare your script against your collection</div>
+        </div>
+      </div>
+      <div id="gaps-results">
+        <div class="empty">
+          <div class="empty-icon">🎯</div>
+          <div class="empty-title">No Analysis Yet</div>
+          <div class="empty-body">Add footage to your collection first, then paste your script and click Find Gaps. The AI will tell you exactly what you're missing.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- SETUP SCREEN -->
+<div id="setup-screen">
+  <div class="setup-card">
+    <div class="setup-logo">
+      <div class="setup-logo-mark">▶</div>
+      <div class="setup-logo-name">B-ROLL <em>SCOUT</em></div>
+    </div>
+    <div class="setup-welcome">
+      Welcome. You need 3 free API keys to unlock all features.<br>
+      Click <strong style="color:var(--text)">"Get free key →"</strong> next to each to open the signup page.
+    </div>
+
+    <div class="setup-step">
+      <div class="setup-step-label">
+        <span><span class="step-num">1</span>Groq API Key <span style="font-size:10px;color:var(--text3);font-weight:400">(AI analysis)</span></span>
+        <a class="get-key-link" id="groq-link">Get free key →</a>
+      </div>
+      <div class="key-input-wrap">
+        <input class="input-field" id="setup-groq" type="password" placeholder="gsk_...">
+        <button class="toggle-vis" data-target="setup-groq">👁</button>
+      </div>
+      <div class="settings-hint">Free at console.groq.com — no credit card needed</div>
+    </div>
+
+    <div class="setup-step">
+      <div class="setup-step-label">
+        <span><span class="step-num">2</span>Pexels API Key <span style="font-size:10px;color:var(--text3);font-weight:400">(video search)</span></span>
+        <a class="get-key-link" id="pexels-link">Get free key →</a>
+      </div>
+      <div class="key-input-wrap">
+        <input class="input-field" id="setup-pexels" type="password" placeholder="Your Pexels API key">
+        <button class="toggle-vis" data-target="setup-pexels">👁</button>
+      </div>
+      <div class="settings-hint">Free at pexels.com/api — instant approval</div>
+    </div>
+
+    <div class="setup-step">
+      <div class="setup-step-label">
+        <span><span class="step-num">3</span>Pixabay API Key <span style="font-size:10px;color:var(--text3);font-weight:400">(video search)</span></span>
+        <a class="get-key-link" id="pixabay-link">Get free key →</a>
+      </div>
+      <div class="key-input-wrap">
+        <input class="input-field" id="setup-pixabay" type="password" placeholder="Your Pixabay API key">
+        <button class="toggle-vis" data-target="setup-pixabay">👁</button>
+      </div>
+      <div class="settings-hint">Free at pixabay.com/api/docs — same day access</div>
+    </div>
+
+    <div class="setup-footer">
+      <button class="btn-primary" id="setup-save-btn" style="width:100%;">
+        LAUNCH B-ROLL SCOUT →
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- SETTINGS OVERLAY -->
+<div id="settings-overlay">
+  <div class="settings-modal">
+    <div class="settings-header">
+      <div class="settings-title">Settings</div>
+      <button class="icon-btn" id="close-settings">✕</button>
+    </div>
+    <div class="settings-body">
+
+      <div class="settings-group">
+        <div class="settings-group-title">AI Provider</div>
+        <div class="settings-field">
+          <div class="settings-label">
+            Groq API Key
+            <a class="get-key-link" data-url="https://console.groq.com">console.groq.com →</a>
+          </div>
+          <div class="key-input-wrap">
+            <input class="input-field" id="settings-groq" type="password" placeholder="gsk_...">
+            <button class="toggle-vis" data-target="settings-groq">👁</button>
+          </div>
+          <div class="settings-hint">Free tier: 14,400 tokens/min. Plenty for script analysis.</div>
+        </div>
+      </div>
+
+      <div class="settings-group">
+        <div class="settings-group-title">Stock Sources</div>
+        <div class="settings-field">
+          <div class="settings-label">
+            Pexels API Key
+            <a class="get-key-link" data-url="https://www.pexels.com/api/">pexels.com/api →</a>
+          </div>
+          <div class="key-input-wrap">
+            <input class="input-field" id="settings-pexels" type="password" placeholder="Your Pexels key">
+            <button class="toggle-vis" data-target="settings-pexels">👁</button>
+          </div>
+        </div>
+        <div class="settings-field">
+          <div class="settings-label">
+            Pixabay API Key
+            <a class="get-key-link" data-url="https://pixabay.com/api/docs/">pixabay.com/api →</a>
+          </div>
+          <div class="key-input-wrap">
+            <input class="input-field" id="settings-pixabay" type="password" placeholder="Your Pixabay key">
+            <button class="toggle-vis" data-target="settings-pixabay">👁</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="settings-footer">
+      <button class="btn-ghost" id="cancel-settings">Cancel</button>
+      <button class="btn-primary" id="save-settings-btn">SAVE SETTINGS</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════
+let settings = { groq:'', pexels:'', pixabay:'' };
+let collection = [];
+let shotPrompts = [];
+let activeSources = new Set(['pexels','pixabay']);
+
+// ═══════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════
+async function init() {
+  // Mac titlebar spacing
+  if (window.api?.platform === 'darwin') {
+    document.getElementById('mac-space').style.display = 'block';
+  }
+
+  // Load saved settings & collection
+  if (window.api) {
+    settings = await window.api.getSettings() || {};
+    collection = await window.api.getCollection() || [];
+  }
+
+  renderCollection();
+  updateBadge();
+
+  // Show setup if keys missing
+  const hasGroq    = settings.groq    && settings.groq.length > 5;
+  const hasPexels  = settings.pexels  && settings.pexels.length > 5;
+  const hasPixabay = settings.pixabay && settings.pixabay.length > 5;
+
+  if (!hasGroq || !hasPexels || !hasPixabay) {
+    document.getElementById('setup-screen').classList.add('visible');
+    prefillSetup();
+  }
+}
+
+function prefillSetup() {
+  if (settings.groq)    document.getElementById('setup-groq').value    = settings.groq;
+  if (settings.pexels)  document.getElementById('setup-pexels').value  = settings.pexels;
+  if (settings.pixabay) document.getElementById('setup-pixabay').value = settings.pixabay;
+}
+
+// ═══════════════════════════════════════════
+//  TOAST
+// ═══════════════════════════════════════════
+let toastTimer;
+function toast(msg, type='info') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = `show ${type}`;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.className = '', 2800);
+}
+
+// ═══════════════════════════════════════════
+//  NAV TABS
+// ═══════════════════════════════════════════
+document.querySelectorAll('.nav-tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(`panel-${btn.dataset.panel}`).classList.add('active');
+
+    // Sync script to gaps panel
+    if (btn.dataset.panel === 'gaps') {
+      const scriptVal = document.getElementById('script-input').value;
+      const gapsScript = document.getElementById('gaps-script');
+      if (scriptVal && !gapsScript.value) gapsScript.value = scriptVal;
+    }
+  });
+});
+
+// ═══════════════════════════════════════════
+//  SETTINGS
+// ═══════════════════════════════════════════
+document.getElementById('settings-btn').addEventListener('click', openSettings);
+document.getElementById('close-settings').addEventListener('click', closeSettings);
+document.getElementById('cancel-settings').addEventListener('click', closeSettings);
+document.getElementById('settings-overlay').addEventListener('click', e => {
+  if (e.target === document.getElementById('settings-overlay')) closeSettings();
+});
+
+function openSettings() {
+  document.getElementById('settings-groq').value    = settings.groq    || '';
+  document.getElementById('settings-pexels').value  = settings.pexels  || '';
+  document.getElementById('settings-pixabay').value = settings.pixabay || '';
+  document.getElementById('settings-overlay').classList.add('open');
+}
+
+function closeSettings() {
+  document.getElementById('settings-overlay').classList.remove('open');
+}
+
+document.getElementById('save-settings-btn').addEventListener('click', async () => {
+  settings.groq    = document.getElementById('settings-groq').value.trim();
+  settings.pexels  = document.getElementById('settings-pexels').value.trim();
+  settings.pixabay = document.getElementById('settings-pixabay').value.trim();
+  if (window.api) await window.api.saveSettings(settings);
+  closeSettings();
+  toast('Settings saved', 'success');
+});
+
+// Settings external links
+document.querySelectorAll('.get-key-link[data-url]').forEach(a => {
+  a.addEventListener('click', () => {
+    if (window.api) window.api.openUrl(a.dataset.url);
+  });
+});
+
+// Toggle password visibility
+document.querySelectorAll('.toggle-vis').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const inp = document.getElementById(btn.dataset.target);
+    inp.type = inp.type === 'password' ? 'text' : 'password';
+  });
+});
+
+// ═══════════════════════════════════════════
+//  SETUP SCREEN
+// ═══════════════════════════════════════════
+document.getElementById('groq-link').addEventListener('click',    () => window.api?.openUrl('https://console.groq.com'));
+document.getElementById('pexels-link').addEventListener('click',  () => window.api?.openUrl('https://www.pexels.com/api/'));
+document.getElementById('pixabay-link').addEventListener('click', () => window.api?.openUrl('https://pixabay.com/api/docs/'));
+
+document.getElementById('setup-save-btn').addEventListener('click', async () => {
+  const groq    = document.getElementById('setup-groq').value.trim();
+  const pexels  = document.getElementById('setup-pexels').value.trim();
+  const pixabay = document.getElementById('setup-pixabay').value.trim();
+
+  if (!groq || !pexels || !pixabay) {
+    toast('Please fill in all 3 API keys', 'error');
+    return;
+  }
+
+  settings.groq    = groq;
+  settings.pexels  = pexels;
+  settings.pixabay = pixabay;
+
+  if (window.api) await window.api.saveSettings(settings);
+  document.getElementById('setup-screen').classList.remove('visible');
+  toast('Welcome to B-Roll Scout! 🎬', 'success');
+});
+
+// Setup toggle vis
+document.querySelectorAll('#setup-screen .toggle-vis').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const inp = document.getElementById(btn.dataset.target);
+    inp.type = inp.type === 'password' ? 'text' : 'password';
+  });
+});
+
+// ═══════════════════════════════════════════
+//  SCRIPT ANALYZER
+// ═══════════════════════════════════════════
+const scriptInput = document.getElementById('script-input');
+const charCount   = document.getElementById('char-count');
+
+scriptInput.addEventListener('input', () => {
+  const lines = scriptInput.value.split('\n').filter(l => l.trim()).length;
+  charCount.textContent = `${lines} line${lines !== 1 ? 's' : ''}`;
+});
+
+document.getElementById('clear-script').addEventListener('click', () => {
+  scriptInput.value = '';
+  charCount.textContent = '0 lines';
+  document.getElementById('shot-list').innerHTML = `
+    <div class="empty">
+      <div class="empty-icon">🎬</div>
+      <div class="empty-title">Ready to Analyze</div>
+      <div class="empty-body">Paste your script on the left and hit Analyze.</div>
+    </div>`;
+  document.getElementById('export-shots').style.display = 'none';
+  document.getElementById('shots-sub').textContent = 'AI-generated search prompts will appear here';
+  shotPrompts = [];
+});
+
+document.getElementById('analyze-btn').addEventListener('click', analyzeScript);
+document.getElementById('export-shots').addEventListener('click', exportShots);
+
+async function analyzeScript() {
+  const script = scriptInput.value.trim();
+  if (!script) { toast('Paste your script first', 'error'); return; }
+  if (!settings.groq) { toast('Add your Groq API key in Settings', 'error'); openSettings(); return; }
+
+  const btn = document.getElementById('analyze-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner"></div> ANALYZING...';
+
+  const shotList = document.getElementById('shot-list');
+  shotList.innerHTML = `<div class="empty"><div class="empty-icon" style="animation:spin 1s linear infinite;display:inline-block">⚡</div><div class="empty-title">Reading Script...</div><div class="empty-body">AI is breaking down every scene and generating optimized search prompts.</div></div>`;
+
+  try {
+    const prompt = `You are a professional video editor and stock footage researcher. Analyze this script and for each sentence or scene, generate an optimized stock footage search prompt.
+
+Return ONLY a valid JSON array. No markdown, no explanation. Each item:
+{
+  "line": "original script excerpt (max 80 chars)",
+  "prompt": "optimized stock search query (5-10 words, highly visual, searchable)",
+  "mood": "one word mood (cinematic/uplifting/tense/peaceful/dramatic/gritty/warm/cold/mysterious)",
+  "shotType": "one of: aerial/closeup/wideshot/timelapse/slowmo/tracking/static",
+  "pace": "one of: fast/medium/slow"
+}
+
+Script:
+${script}
+
+Return ONLY the JSON array.`;
+
+    const result = await window.api.groq({
+      apiKey: settings.groq,
+      model: 'llama3-8b-8192',
+      messages: [{ role: 'user', content: prompt }]
+    });
+
+    const content = result.choices[0].message.content;
+    const jsonMatch = content.match(/\[[\s\S]*\]/);
+    if (!jsonMatch) throw new Error('Invalid response format');
+
+    shotPrompts = JSON.parse(jsonMatch[0]);
+    renderShotCards(shotPrompts);
+    document.getElementById('shots-sub').textContent = `${shotPrompts.length} shot prompts generated`;
+    document.getElementById('export-shots').style.display = 'flex';
+    toast(`${shotPrompts.length} shot prompts ready!`, 'success');
+
+  } catch (err) {
+    console.error(err);
+    toast('Analysis failed — check your Groq API key', 'error');
+    shotList.innerHTML = `<div class="empty"><div class="empty-icon">❌</div><div class="empty-title">Analysis Failed</div><div class="empty-body">${err.message}</div></div>`;
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> ANALYZE SCRIPT';
+  }
+}
+
+function renderShotCards(shots) {
+  const shotList = document.getElementById('shot-list');
+  shotList.innerHTML = '';
+  shots.forEach((shot, i) => {
+    const card = document.createElement('div');
+    card.className = 'shot-card';
+    card.style.animationDelay = `${i * 40}ms`;
+    card.innerHTML = `
+      <div class="shot-number">SHOT ${String(i+1).padStart(2,'0')}</div>
+      <div class="shot-original">"${shot.line}"</div>
+      <div class="shot-prompt-text">${shot.prompt}</div>
+      <div class="shot-chips">
+        <span class="chip chip-mood">${shot.mood || 'cinematic'}</span>
+        <span class="chip chip-type">${shot.shotType || 'wideshot'}</span>
+        <span class="chip chip-pace">${shot.pace || 'medium'}</span>
+      </div>
+      <div class="shot-buttons">
+        <button class="search-btn pexels" data-prompt="${shot.prompt}" data-source="pexels">Pexels</button>
+        <button class="search-btn pixabay" data-prompt="${shot.prompt}" data-source="pixabay">Pixabay</button>
+        <button class="search-btn unsplash" data-prompt="${shot.prompt}" data-source="unsplash">Unsplash</button>
+        <button class="copy-btn" data-prompt="${shot.prompt}">Copy prompt</button>
+      </div>`;
+    shotList.appendChild(card);
+
+    // Search buttons
+    card.querySelectorAll('.search-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const p = btn.dataset.prompt;
+        const src = btn.dataset.source;
+        if (src === 'pexels') {
+          switchToSearch(p, 'pexels');
+        } else if (src === 'pixabay') {
+          switchToSearch(p, 'pixabay');
+        } else {
+          window.api?.openUrl(`https://unsplash.com/s/videos/${encodeURIComponent(p)}`);
+        }
+      });
+    });
+
+    // Copy button
+    card.querySelector('.copy-btn').addEventListener('click', function() {
+      navigator.clipboard.writeText(this.dataset.prompt);
+      this.textContent = '✓ Copied';
+      this.classList.add('copied');
+      setTimeout(() => { this.textContent = 'Copy prompt'; this.classList.remove('copied'); }, 2000);
+    });
+  });
+}
+
+function switchToSearch(prompt, source) {
+  document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelector('[data-panel="search"]').classList.add('active');
+  document.getElementById('panel-search').classList.add('active');
+  document.getElementById('search-input').value = prompt;
+  runSearch(prompt);
+}
+
+function exportShots() {
+  if (!shotPrompts.length) return;
+  const csv = ['Shot,Original Line,Search Prompt,Mood,Shot Type,Pace'];
+  shotPrompts.forEach((s, i) => {
+    csv.push(`${i+1},"${s.line?.replace(/"/g,'""')}","${s.prompt?.replace(/"/g,'""')}",${s.mood},${s.shotType},${s.pace}`);
+  });
+  downloadText(csv.join('\n'), 'shot-list.csv', 'text/csv');
+  toast('Shot list exported!', 'success');
+}
+
+// ═══════════════════════════════════════════
+//  STOCK SEARCH
+// ═══════════════════════════════════════════
+document.getElementById('search-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doSearch();
+});
+document.getElementById('do-search').addEventListener('click', doSearch);
+
+document.querySelectorAll('.source-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    btn.classList.toggle('active');
+    if (btn.classList.contains('active')) activeSources.add(btn.dataset.source);
+    else activeSources.delete(btn.dataset.source);
+  });
+});
+
+function doSearch() {
+  const query = document.getElementById('search-input').value.trim();
+  if (!query) { toast('Enter a search query', 'error'); return; }
+  runSearch(query);
+}
+
+async function runSearch(query) {
+  if (!settings.pexels && !settings.pixabay) {
+    toast('Add API keys in Settings', 'error'); openSettings(); return;
+  }
+
+  const resultsEl = document.getElementById('search-results');
+  resultsEl.innerHTML = `<div class="empty" style="grid-column:1/-1"><div class="empty-icon" style="animation:spin 1s linear infinite;display:inline-block">🔍</div><div class="empty-title">Searching...</div></div>`;
+
+  const btn = document.getElementById('do-search');
+  btn.disabled = true;
+
+  try {
+    const promises = [];
+
+    if (activeSources.has('pexels') && settings.pexels) {
+      promises.push(
+        window.api.pexels({ apiKey: settings.pexels, query })
+          .then(data => ({ source: 'pexels', data }))
+          .catch(() => ({ source: 'pexels', data: null }))
+      );
+    }
+
+    if (activeSources.has('pixabay') && settings.pixabay) {
+      promises.push(
+        window.api.pixabay({ apiKey: settings.pixabay, query })
+          .then(data => ({ source: 'pixabay', data }))
+          .catch(() => ({ source: 'pixabay', data: null }))
+      );
+    }
+
+    const results = await Promise.all(promises);
+    const allItems = [];
+
+    results.forEach(({ source, data }) => {
+      if (!data) return;
+      if (source === 'pexels' && data.videos) {
+        data.videos.forEach(v => {
+          const thumb = v.image;
+          const url = v.url;
+          const title = v.user?.name ? `by ${v.user.name}` : 'Pexels Video';
+          allItems.push({ source: 'pexels', thumb, url, title, id: `pexels-${v.id}`, raw: v });
+        });
+      }
+      if (source === 'pixabay' && data.hits) {
+        data.hits.forEach(v => {
+          const thumb = v.videos?.small?.thumbnail || v.userImageURL;
+          const url = `https://pixabay.com/videos/id-${v.id}/`;
+          const title = v.tags || 'Pixabay Video';
+          allItems.push({ source: 'pixabay', thumb, url, title, id: `pixabay-${v.id}`, raw: v });
+        });
+      }
+    });
+
+    if (!allItems.length) {
+      resultsEl.innerHTML = `<div class="empty" style="grid-column:1/-1"><div class="empty-icon">🤷</div><div class="empty-title">No Results</div><div class="empty-body">Try different keywords or check your API keys.</div></div>`;
+      return;
+    }
+
+    // Interleave sources
+    resultsEl.innerHTML = '';
+    allItems.forEach((item, i) => {
+      const card = document.createElement('div');
+      card.className = 'result-card';
+      card.style.animationDelay = `${i * 30}ms`;
+      card.innerHTML = `
+        <img class="result-thumb" src="${item.thumb || ''}" alt="${item.title}" loading="lazy" onerror="this.style.background='#1a1a1a'">
+        <div class="result-info">
+          <div class="result-source src-${item.source}">${item.source.toUpperCase()}</div>
+          <div class="result-title">${item.title}</div>
+          <div class="result-actions">
+            <button class="result-btn" data-url="${item.url}">View</button>
+            <button class="result-btn save-btn" data-item='${JSON.stringify({id:item.id,source:item.source,thumb:item.thumb,url:item.url,title:item.title})}'>Save</button>
+          </div>
+        </div>`;
+      resultsEl.appendChild(card);
+
+      card.querySelector('[data-url]').addEventListener('click', function() {
+        window.api?.openUrl(this.dataset.url);
+      });
+
+      card.querySelector('.save-btn').addEventListener('click', function(e) {
+        e.stopPropagation();
+        const item = JSON.parse(this.dataset.item);
+        saveToCollection(item);
+        this.textContent = '✓ Saved';
+        this.style.color = 'var(--green)';
+        setTimeout(() => { this.textContent = 'Save'; this.style.color = ''; }, 2000);
+      });
+    });
+
+    toast(`${allItems.length} results found`, 'success');
+  } catch (err) {
+    toast('Search failed', 'error');
+    resultsEl.innerHTML = `<div class="empty" style="grid-column:1/-1"><div class="empty-icon">❌</div><div class="empty-title">Search Failed</div><div class="empty-body">${err.message}</div></div>`;
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// ═══════════════════════════════════════════
+//  COLLECTION / ORGANIZER
+// ═══════════════════════════════════════════
+const TAGS = ['Hero Shot','B-Roll','Cutaway','Transition','Slow Mo','Action','Nature','Urban','Interior','Aerial'];
+
+function saveToCollection(item) {
+  if (collection.find(c => c.id === item.id)) {
+    toast('Already in collection', 'info');
+    return;
+  }
+  item.tags = [];
+  item.savedAt = Date.now();
+  collection.unshift(item);
+  window.api?.saveCollection(collection);
+  updateBadge();
+  renderCollection();
+  toast('Saved to collection!', 'success');
+}
+
+function updateBadge() {
+  const badge = document.getElementById('collection-badge');
+  if (collection.length > 0) {
+    badge.style.display = 'inline';
+    badge.textContent = collection.length;
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+let activeFilter = 'all';
+
+document.querySelectorAll('.filter-chip').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-chip').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeFilter = btn.dataset.tag;
+    renderCollection();
+  });
+});
+
+document.getElementById('export-collection').addEventListener('click', exportCollection);
+
+function renderCollection() {
+  const grid = document.getElementById('collection-grid');
+  let items = collection;
+  if (activeFilter !== 'all') {
+    items = collection.filter(c => c.tags && c.tags.some(t => t.toLowerCase().replace(' ','-') === activeFilter));
+  }
+
+  if (!items.length) {
+    grid.innerHTML = `<div class="empty" style="grid-column:1/-1">
+      <div class="empty-icon">📂</div>
+      <div class="empty-title">${activeFilter === 'all' ? 'Collection Empty' : 'No Items Tagged'}</div>
+      <div class="empty-body">${activeFilter === 'all' ? 'Save footage from the Stock Search tab.' : 'Tag items in your collection with "' + activeFilter + '".'}</div>
+    </div>`;
+    return;
+  }
+
+  grid.innerHTML = '';
+  items.forEach((item, i) => {
+    const card = document.createElement('div');
+    card.className = 'collection-card';
+    card.style.animationDelay = `${i * 20}ms`;
+    card.innerHTML = `
+      <img class="collection-thumb" src="${item.thumb || ''}" alt="${item.title}" loading="lazy" onerror="this.style.background='#1a1a1a'">
+      <div class="collection-body">
+        <div class="collection-tags" id="tags-${item.id}"></div>
+        <div class="tag-presets"></div>
+        <div class="collection-footer">
+          <span class="collection-source src-${item.source}">${item.source.toUpperCase()}</span>
+          <button class="result-btn" data-url="${item.url}" style="padding:4px 8px;font-size:11px">Open</button>
+          <button class="result-btn" data-remove="${item.id}" style="padding:4px 8px;font-size:11px;color:var(--text3)">✕</button>
+        </div>
+      </div>`;
+
+    // Render applied tags
+    renderItemTags(card, item);
+
+    // Tag presets
+    const presets = card.querySelector('.tag-presets');
+    TAGS.forEach(tag => {
+      const chip = document.createElement('button');
+      chip.className = 'ctag';
+      chip.textContent = tag;
+      if (item.tags?.includes(tag)) chip.classList.add('selected');
+      chip.addEventListener('click', () => {
+        if (!item.tags) item.tags = [];
+        if (item.tags.includes(tag)) item.tags = item.tags.filter(t => t !== tag);
+        else item.tags.push(tag);
+        chip.classList.toggle('selected');
+        renderItemTags(card, item);
+        window.api?.saveCollection(collection);
+      });
+      presets.appendChild(chip);
+    });
+
+    // Open
+    card.querySelector('[data-url]').addEventListener('click', function() {
+      window.api?.openUrl(this.dataset.url);
+    });
+
+    // Remove
+    card.querySelector('[data-remove]').addEventListener('click', function() {
+      collection = collection.filter(c => c.id !== this.dataset.remove);
+      window.api?.saveCollection(collection);
+      updateBadge();
+      renderCollection();
+      toast('Removed from collection', 'info');
+    });
+
+    grid.appendChild(card);
+  });
+}
+
+function renderItemTags(card, item) {
+  const tagsEl = card.querySelector('.collection-tags');
+  tagsEl.innerHTML = '';
+  (item.tags || []).forEach(tag => {
+    const t = document.createElement('span');
+    t.className = 'ctag selected';
+    t.textContent = tag;
+    tagsEl.appendChild(t);
+  });
+}
+
+function exportCollection() {
+  if (!collection.length) { toast('Collection is empty', 'error'); return; }
+  const csv = ['Source,Title,Tags,URL,Saved At'];
+  collection.forEach(item => {
+    csv.push(`${item.source},"${item.title?.replace(/"/g,'""')}","${(item.tags||[]).join('; ')}",${item.url},${new Date(item.savedAt).toLocaleDateString()}`);
+  });
+  downloadText(csv.join('\n'), 'broll-collection.csv', 'text/csv');
+  toast('Collection exported!', 'success');
+}
+
+// ═══════════════════════════════════════════
+//  GAP ANALYZER
+// ═══════════════════════════════════════════
+document.getElementById('analyze-gaps-btn').addEventListener('click', analyzeGaps);
+
+async function analyzeGaps() {
+  const script = document.getElementById('gaps-script').value.trim();
+  if (!script) { toast('Paste your script first', 'error'); return; }
+  if (!settings.groq) { toast('Add your Groq API key in Settings', 'error'); openSettings(); return; }
+
+  const btn = document.getElementById('analyze-gaps-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner"></div> ANALYZING GAPS...';
+
+  const resultsEl = document.getElementById('gaps-results');
+  resultsEl.innerHTML = `<div class="empty"><div class="empty-icon" style="animation:spin 1s linear infinite;display:inline-block">🔍</div><div class="empty-title">Analyzing Gaps...</div><div class="empty-body">Comparing your script to your collection...</div></div>`;
+
+  try {
+    const collectionSummary = collection.map(c =>
+      `- ${c.title} [${c.source}] tags: ${(c.tags||[]).join(', ') || 'none'}`
+    ).join('\n') || 'Collection is currently empty.';
+
+    const prompt = `You are a professional video editor. Analyze this script and compare it against the available footage collection. Identify which scenes are COVERED, PARTIALLY covered, or MISSING footage.
+
+SCRIPT:
+${script}
+
+AVAILABLE FOOTAGE COLLECTION:
+${collectionSummary}
+
+Return ONLY a valid JSON array. No markdown. Each item:
+{
+  "scene": "brief description of the scene (max 80 chars)",
+  "status": "missing" | "covered" | "partial",
+  "suggestion": "specific stock search prompt if missing or partial (5-10 words)",
+  "reason": "brief explanation of why it's missing/covered/partial (max 100 chars)"
+}
+
+Focus on the most important gaps first.`;
+
+    const result = await window.api.groq({
+      apiKey: settings.groq,
+      model: 'llama3-8b-8192',
+      messages: [{ role: 'user', content: prompt }]
+    });
+
+    const content = result.choices[0].message.content;
+    const jsonMatch = content.match(/\[[\s\S]*\]/);
+    if (!jsonMatch) throw new Error('Invalid response format');
+
+    const gaps = JSON.parse(jsonMatch[0]);
+    renderGaps(gaps);
+
+    const missing = gaps.filter(g => g.status === 'missing').length;
+    const partial = gaps.filter(g => g.status === 'partial').length;
+    document.getElementById('gaps-sub').textContent = `${missing} missing · ${partial} partial · ${gaps.length - missing - partial} covered`;
+    toast(`Gap analysis complete: ${missing} shots missing`, missing > 0 ? 'error' : 'success');
+
+  } catch (err) {
+    console.error(err);
+    toast('Analysis failed — check your Groq API key', 'error');
+    resultsEl.innerHTML = `<div class="empty"><div class="empty-icon">❌</div><div class="empty-title">Analysis Failed</div><div class="empty-body">${err.message}</div></div>`;
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg> FIND GAPS';
+  }
+}
+
+function renderGaps(gaps) {
+  const resultsEl = document.getElementById('gaps-results');
+  resultsEl.innerHTML = '';
+
+  // Sort: missing first, then partial, then covered
+  const sorted = [...gaps].sort((a,b) => {
+    const order = { missing:0, partial:1, covered:2 };
+    return order[a.status] - order[b.status];
+  });
+
+  sorted.forEach((gap, i) => {
+    const card = document.createElement('div');
+    card.className = 'gap-card';
+    card.style.animationDelay = `${i * 40}ms`;
+
+    const statusLabel = { missing:'MISSING', partial:'PARTIAL', covered:'COVERED' }[gap.status];
+    const labelClass  = `label-${gap.status}`;
+
+    card.innerHTML = `
+      <div class="gap-status">
+        <div class="gap-indicator ${gap.status}"></div>
+        <span class="gap-label ${labelClass}">${statusLabel}</span>
+      </div>
+      <div class="gap-scene">${gap.scene}</div>
+      ${gap.suggestion ? `<div class="gap-suggestion">🔎 "${gap.suggestion}"</div>` : ''}
+      <div class="gap-reason">${gap.reason}</div>
+      ${gap.status !== 'covered' ? `
+        <div class="gap-actions">
+          <button class="search-btn pexels" data-prompt="${gap.suggestion}">Search Pexels</button>
+          <button class="search-btn pixabay" data-prompt="${gap.suggestion}">Search Pixabay</button>
+          <button class="copy-btn" data-prompt="${gap.suggestion}">Copy</button>
+        </div>` : ''}`;
+
+    card.querySelectorAll('.search-btn').forEach(btn => {
+      btn.addEventListener('click', () => switchToSearch(btn.dataset.prompt));
+    });
+    const copyBtn = card.querySelector('.copy-btn');
+    if (copyBtn) {
+      copyBtn.addEventListener('click', function() {
+        navigator.clipboard.writeText(this.dataset.prompt);
+        this.textContent = '✓';
+        setTimeout(() => this.textContent = 'Copy', 2000);
+      });
+    }
+
+    resultsEl.appendChild(card);
+  });
+}
+
+// ═══════════════════════════════════════════
+//  UTILS
+// ═══════════════════════════════════════════
+function downloadText(content, filename, type) {
+  const blob = new Blob([content], { type });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+// ═══════════════════════════════════════════
+//  BOOT
+// ═══════════════════════════════════════════
+init();
+</script>
+</body>
+</html>
