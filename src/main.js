@@ -141,12 +141,12 @@ ipcMain.handle('groq-request', async (_, { apiKey, messages, model }) => {
   });
 });
 
-// Pexels search
-ipcMain.handle('pexels-search', async (_, { apiKey, query }) => {
+// Pexels search (paginated)
+ipcMain.handle('pexels-search', async (_, { apiKey, query, perPage = 80, page = 1 }) => {
   return new Promise((resolve, reject) => {
     const options = {
       hostname: 'api.pexels.com',
-      path: `/videos/search?query=${encodeURIComponent(query)}&per_page=12&size=medium`,
+      path: `/videos/search?query=${encodeURIComponent(query)}&per_page=${perPage}&page=${page}`,
       method: 'GET',
       headers: { 'Authorization': apiKey }
     };
@@ -163,13 +163,35 @@ ipcMain.handle('pexels-search', async (_, { apiKey, query }) => {
   });
 });
 
-// Pixabay search
-ipcMain.handle('pixabay-search', async (_, { apiKey, query }) => {
+// Pixabay search (paginated)
+ipcMain.handle('pixabay-search', async (_, { apiKey, query, perPage = 80, page = 1 }) => {
   return new Promise((resolve, reject) => {
     const options = {
       hostname: 'pixabay.com',
-      path: `/api/videos/?key=${apiKey}&q=${encodeURIComponent(query)}&per_page=12`,
+      path: `/api/videos/?key=${apiKey}&q=${encodeURIComponent(query)}&per_page=${perPage}&page=${page}`,
       method: 'GET'
+    };
+
+    const req = https.request(options, (res) => {
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => {
+        try { resolve(JSON.parse(data)); } catch (e) { reject(e); }
+      });
+    });
+    req.on('error', reject);
+    req.end();
+  });
+});
+
+// Unsplash photo search (paginated)
+ipcMain.handle('unsplash-search', async (_, { apiKey, query, perPage = 30, page = 1 }) => {
+  return new Promise((resolve, reject) => {
+    const options = {
+      hostname: 'api.unsplash.com',
+      path: `/search/photos?query=${encodeURIComponent(query)}&per_page=${perPage}&page=${page}`,
+      method: 'GET',
+      headers: { 'Authorization': `Client-ID ${apiKey}` }
     };
 
     const req = https.request(options, (res) => {
