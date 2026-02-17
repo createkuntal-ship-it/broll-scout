@@ -9,6 +9,7 @@ contextBridge.exposeInMainWorld('api', {
   groq:           (opts)          => ipcRenderer.invoke('groq-request', opts),
   pexels:         (opts)          => ipcRenderer.invoke('pexels-search', opts),
   pixabay:        (opts)          => ipcRenderer.invoke('pixabay-search', opts),
+  unsplash:       (opts)          => ipcRenderer.invoke('unsplash-search', opts),
   readFile:       (filePath)      => ipcRenderer.invoke('read-file', filePath),
   downloadVideo:  (url, filename) => ipcRenderer.invoke('download-video', { url, filename }),
   platform: process.platform
